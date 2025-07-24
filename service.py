@@ -1,54 +1,50 @@
 from jnius import autoclass
-from android import mActivity
 from android.runnable import run_on_ui_thread
 
-Service = autoclass('android.app.Service')
-Intent = autoclass('android.content.Intent')
 Context = autoclass('android.content.Context')
-PythonService = autoclass('org.kivy.android.PythonService')
+Intent = autoclass('android.content.Intent')
+NotificationManager = autoclass('android.app.NotificationManager')
+NotificationChannel = autoclass('android.app.NotificationChannel')
+NotificationBuilder = autoclass('android.app.Notification$Builder')
+PythonActivity = autoclass('org.kivy.android.PythonActivity')
 
-class BackgroundService(Service):
+class BackgroundService:
+    @classmethod
     @run_on_ui_thread
-    def onCreate(self):
-        super().onCreate()
-        self.startForegroundService()
+    def start(cls):
+        activity = PythonActivity.mActivity
+        service_intent = Intent(activity, cls.get_service_class())
+        activity.startService(service_intent)
 
-    def startForegroundService(self):
-        # Create notification channel (required for Android 8+)
-        self.create_notification_channel()
-        
-        # Build notification
-        NotificationBuilder = autoclass('android.app.Notification$Builder')
-        builder = NotificationBuilder(mActivity, "background_channel")
-        
-        builder.setContentTitle("Background Service")
-        builder.setContentText("Running in background")
-        builder.setSmallIcon(mActivity.getResources().getIdentifier(
-            "icon", "drawable", mActivity.getPackageName()))
-        builder.setOngoing(True)
-        
-        # Start foreground service
-        notification = builder.build()
-        self.startForeground(1, notification)
+    @classmethod
+    def get_service_class(cls):
+        class Service(autoclass('android.app.Service')):
+            def onCreate(self):
+                super().onCreate()
+                self.setup_foreground_service()
 
-    def create_notification_channel(self):
-        if autoclass('android.os.Build$VERSION').SDK_INT >= 26:
-            NotificationManager = autoclass('android.app.NotificationManager')
-            NotificationChannel = autoclass('android.app.NotificationChannel')
-            
-            channel = NotificationChannel(
-                "background_channel",
-                "Background Service",
-                NotificationManager.IMPORTANCE_LOW
-            )
-            
-            notification_manager = mActivity.getSystemService(Context.NOTIFICATION_SERVICE)
-            notification_manager.createNotificationChannel(channel)
+            def setup_foreground_service(self):
+                if autoclass('android.os.Build$VERSION').SDK_INT >= 26:
+                    self.create_notification_channel()
+                
+                builder = NotificationBuilder(self, "background_channel")
+                builder.setContentTitle("Background Service")
+                builder.setContentText("Running in background")
+                builder.setSmallIcon(self.get_resources().getIdentifier(
+                    "icon", "drawable", self.getPackageName()))
+                builder.setOngoing(True)
+                self.startForeground(1, builder.build())
 
-    def onBind(self, intent):
-        return None
+            def create_notification_channel(self):
+                channel = NotificationChannel(
+                    "background_channel",
+                    "Background Service",
+                    NotificationManager.IMPORTANCE_LOW
+                )
+                manager = self.getSystemService(Context.NOTIFICATION_SERVICE)
+                manager.createNotificationChannel(channel)
 
-# Service starter
-def start_service():
-    service_intent = Intent(mActivity, BackgroundService)
-    mActivity.startService(service_intent)
+            def onBind(self, intent):
+                return None
+
+        return Service
