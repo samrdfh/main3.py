@@ -7,7 +7,7 @@ package.domain = org.example
 
 # إعدادات الإصدار
 version = 1.0.0
-requirements = python3,kivy==2.3.1,plyer==2.1.0,requests==2.32.4,pyjnius==1.5.0,numpy==1.26.4
+requirements = python3==3.9.13,kivy==2.3.1,plyer==2.1.0,requests==2.32.4,pyjnius==1.5.0,numpy==1.26.4
 
 # إعدادات الملفات
 source.dir = .
