@@ -7,14 +7,14 @@ package.domain = org.example
 
 # إعدادات الإصدار
 version = 1.0.0
-requirements = python3, kivy, plyer, requests, android, jnius
+requirements = python3,kivy==2.3.1,plyer==2.1.0,requests==2.32.4,pyjnius==1.5.0,numpy==1.26.4
 
 # إعدادات الملفات
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,ttf,json,txt
 orientation = portrait
 fullscreen = 0
-android.entrypoint = org.kivy.android.PythonService
+android.entrypoint = org.kivy.android.PythonActivity
 
 [android]
 
